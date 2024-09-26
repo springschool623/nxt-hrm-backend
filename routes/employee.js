@@ -5,16 +5,32 @@ const Employee = require('../models/Employee')
 // API thêm nhân viên mới
 router.post('/add', async (req, res) => {
   try {
-    const { name, email, employeeId, phone, joinDate, role } = req.body
+    const { name, email, phone, joinDate, role, avatar, socialLinks } = req.body
+
+    // Lấy employeeId lớn nhất hiện tại
+    const lastEmployee = await Employee.findOne().sort({ employeeId: -1 })
+
+    // Tạo employeeId mới theo định dạng EMPXXXX
+    let newEmployeeId = 'EMP0001' // Giá trị mặc định nếu không có nhân viên nào
+
+    if (lastEmployee && lastEmployee.employeeId) {
+      // Lấy phần số từ employeeId cuối cùng và tăng nó lên
+      const lastIdNum =
+        parseInt(lastEmployee.employeeId.replace('EMP', '')) || 0
+      const newIdNum = lastIdNum + 1
+      newEmployeeId = `EMP${newIdNum.toString().padStart(4, '0')}` // Đảm bảo có 4 chữ số
+    }
 
     // Tạo một nhân viên mới từ dữ liệu được gửi
     const employee = new Employee({
       name,
       email,
-      employeeId,
+      employeeId: newEmployeeId, // Dùng employeeId tự động sinh ra
       phone,
       joinDate,
       role,
+      avatar, // Thêm avatar
+      socialLinks, // Thêm các đường dẫn mạng xã hội
     })
 
     // Lưu vào MongoDB
@@ -35,6 +51,24 @@ router.get('/list', async (req, res) => {
   }
 })
 
+// API để lấy thông tin nhân viên theo Employee ID
+router.get('/:employeeId', async (req, res) => {
+  try {
+    const { employeeId } = req.params
+
+    // Tìm nhân viên theo Employee ID
+    const employee = await Employee.findOne({ employeeId })
+
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' })
+    }
+
+    res.status(200).json(employee)
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to retrieve employee', error })
+  }
+})
+
 // API để cập nhật thông tin nhân viên dựa trên Employee ID
 router.put('/update/:employeeId', async (req, res) => {
   try {
@@ -45,7 +79,7 @@ router.put('/update/:employeeId', async (req, res) => {
     const updatedEmployee = await Employee.findOneAndUpdate(
       { employeeId },
       updateData,
-      { new: true }
+      { new: true } // Trả về dữ liệu mới sau khi cập nhật
     )
 
     if (!updatedEmployee) {

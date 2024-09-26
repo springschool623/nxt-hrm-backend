@@ -1,6 +1,7 @@
 require('dotenv').config() // Nạp các biến môi trường từ file .env
 
 const express = require('express')
+const cors = require('cors')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const employeeRoutes = require('./routes/employee')
@@ -10,6 +11,9 @@ const app = express()
 // Lấy PORT và MONGO_URI từ biến môi trường
 const PORT = process.env.PORT || 5000
 const MONGO_URI = process.env.MONGO_URI
+
+// Bật CORS cho toàn bộ ứng dụng
+app.use(cors())
 
 // Middleware để parse dữ liệu JSON
 app.use(bodyParser.json())
