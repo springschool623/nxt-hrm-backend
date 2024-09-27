@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    userName: {
+    email: {
       type: String,
       required: true,
       unique: true,
@@ -16,15 +16,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    role: {
+    userRoleType: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Role', // Referencing RoleSchema
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ['active', 'inactive'],
-      default: 'active',
+      ref: 'UserRole',
+      default: 'Employee',
     },
   },
   { timestamps: true }

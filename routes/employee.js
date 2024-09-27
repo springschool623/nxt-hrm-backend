@@ -1,11 +1,34 @@
 const express = require('express')
 const router = express.Router()
-const Employee = require('../models/Employee')
+const Employee = require('../models/Employee') // Adjust the path as necessary
+const User = require('../models/User') // Adjust the path as necessary
+const bcrypt = require('bcrypt') // For password hashing
+const UserRole = require('../models/UserRole') // Điều chỉnh đường dẫn nếu cần
 
-// API thêm nhân viên mới
+// Utility function to generate a random password
+function generateRandomPassword(length = 8) {
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;:,.<>?'
+  let password = ''
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length)
+    password += chars[randomIndex]
+  }
+  return password
+}
+
+// API để thêm nhân viên mới
 router.post('/add', async (req, res) => {
   try {
-    const { name, email, phone, joinDate, role, avatar, socialLinks } = req.body
+    const { name, email, phone, joinDate, role, avatar } = req.body
+
+    // Kiểm tra xem email đã tồn tại trong bảng User hay chưa
+    const existingUser = await User.findOne({ email })
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: 'Email đã được sử dụng bởi một người dùng khác.' })
+    }
 
     // Lấy employeeId lớn nhất hiện tại
     const lastEmployee = await Employee.findOne().sort({ employeeId: -1 })
@@ -14,7 +37,6 @@ router.post('/add', async (req, res) => {
     let newEmployeeId = 'EMP0001' // Giá trị mặc định nếu không có nhân viên nào
 
     if (lastEmployee && lastEmployee.employeeId) {
-      // Lấy phần số từ employeeId cuối cùng và tăng nó lên
       const lastIdNum =
         parseInt(lastEmployee.employeeId.replace('EMP', '')) || 0
       const newIdNum = lastIdNum + 1
@@ -25,19 +47,55 @@ router.post('/add', async (req, res) => {
     const employee = new Employee({
       name,
       email,
-      employeeId: newEmployeeId, // Dùng employeeId tự động sinh ra
+      employeeId: newEmployeeId,
       phone,
       joinDate,
       role,
-      avatar, // Thêm avatar
-      socialLinks, // Thêm các đường dẫn mạng xã hội
+      avatar,
     })
 
-    // Lưu vào MongoDB
+    // Lưu nhân viên vào cơ sở dữ liệu
     await employee.save()
-    res.status(200).json({ message: 'Employee added successfully', employee })
+
+    // Tạo mật khẩu ngẫu nhiên
+    const plainPassword = generateRandomPassword(8)
+
+    // Hiển thị mật khẩu trước khi băm
+    console.log('Generated password before hashing:', plainPassword)
+
+    // Băm mật khẩu trước khi lưu
+    const saltRounds = 10
+    const hashedPassword = await bcrypt.hash(plainPassword, saltRounds)
+
+    // Lấy vai trò Employee từ bảng UserRole
+    const employeeRole = await UserRole.findOne({ userRoleType: 'Employee' })
+    if (!employeeRole) {
+      return res.status(500).json({
+        message: 'Không tìm thấy vai trò Employee trong bảng UserRole.',
+      })
+    }
+
+    // Tạo một tài khoản người dùng mới cho nhân viên
+    const user = new User({
+      employeeId: newEmployeeId,
+      email,
+      password: hashedPassword,
+      userRoleType: employeeRole._id, // Sử dụng ObjectId đã lấy
+    })
+
+    // Lưu tài khoản người dùng vào cơ sở dữ liệu
+    await user.save()
+
+    res.status(200).json({
+      message: 'Nhân viên và tài khoản người dùng đã được thêm thành công',
+      employee,
+    })
   } catch (error) {
-    res.status(500).json({ message: 'Failed to add employee', error })
+    console.error('Lỗi khi thêm nhân viên và tài khoản người dùng:', error)
+    res.status(500).json({
+      message: 'Thêm nhân viên và tài khoản thất bại',
+      error: error.message,
+    })
   }
 })
 

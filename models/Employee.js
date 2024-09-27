@@ -31,16 +31,6 @@ const EmployeeSchema = new mongoose.Schema(
     avatar: {
       type: String, // URL của ảnh đại diện
     },
-    socialLinks: [
-      {
-        platform: {
-          type: mongoose.Schema.Types.ObjectId, // Tham chiếu đến SocialPlatform
-          ref: 'SocialPlatform', // Model SocialPlatform
-          required: false,
-        },
-        url: { type: String, required: false }, // URL của profile mạng xã hội
-      },
-    ],
     manager: {
       type: String,
       required: false, // Tham chiếu tới manager nếu có

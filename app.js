@@ -5,6 +5,9 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const employeeRoutes = require('./routes/employee')
+const userRoleRoutes = require('./routes/user_role')
+const userRoutes = require('./routes/user')
+const initializeRoles = require('./initialize/initializeUserRoles') // Import script khởi tạo roles
 
 const app = express()
 
@@ -20,6 +23,8 @@ app.use(bodyParser.json())
 
 // Các route liên quan đến nhân viên
 app.use('/api/employees', employeeRoutes)
+app.use('/api/user-roles', userRoleRoutes)
+app.use('/api/users', userRoutes)
 
 // Kết nối tới MongoDB
 mongoose
@@ -29,6 +34,9 @@ mongoose
   })
   .then(() => {
     console.log('Connected to MongoDB')
+
+    // Khởi tạo các roles sau khi kết nối database thành công
+    initializeRoles() // Gọi hàm khởi tạo roles
   })
   .catch((error) => {
     console.log('Failed to connect to MongoDB', error)
