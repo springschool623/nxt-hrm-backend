@@ -41,8 +41,6 @@ router.get('/list', async (req, res) => {
   }
 })
 
-module.exports = router
-
 // API đăng nhập
 router.post('/login', async (req, res) => {
   const { email, password } = req.body
@@ -62,15 +60,24 @@ router.post('/login', async (req, res) => {
 
     // Tạo JWT token
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.userRoleType },
+      {
+        id: user._id,
+        email: user.email,
+        role: user.userRoleType,
+        employeeId: user.employeeId,
+      },
       process.env.JWT_SECRET,
       {
         expiresIn: '1h',
       }
     )
 
-    // Trả về token cho client
-    return res.status(200).json({ token, userRoleType: user.userRoleType })
+    // Trả về token và employeeID cho client
+    return res.status(200).json({
+      token,
+      userRoleType: user.userRoleType,
+      employeeId: user.employeeId, // Thêm employeeID ở đây
+    })
   } catch (error) {
     return res.status(500).json({ message: 'Server error', error })
   }

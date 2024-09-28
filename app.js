@@ -7,6 +7,7 @@ const bodyParser = require('body-parser')
 const employeeRoutes = require('./routes/employee')
 const userRoleRoutes = require('./routes/user_role')
 const userRoutes = require('./routes/user')
+const leaveRequestRoutes = require('./routes/leave-request')
 const initializeRoles = require('./initialize/initializeUserRoles') // Import script khởi tạo roles
 const createSuperAdmin = require('./initialize/initializeSuperAdmin') // Import script khởi tạo roles
 
@@ -26,6 +27,7 @@ app.use(bodyParser.json())
 app.use('/api/employees', employeeRoutes)
 app.use('/api/user-roles', userRoleRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/leave-requests', leaveRequestRoutes)
 
 // Kết nối tới MongoDB
 mongoose

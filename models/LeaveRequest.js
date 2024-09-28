@@ -10,6 +10,10 @@ const LeaveRequestSchema = new mongoose.Schema({
     type: String,
     required: true, // Tham chiếu đến nhân viên gửi yêu cầu nghỉ
   },
+  leaveType: {
+    type: String,
+    required: true, // Tham chiếu đến nhân viên gửi yêu cầu nghỉ
+  },
   startDate: {
     type: Date,
     required: true, // Ngày bắt đầu nghỉ
@@ -20,7 +24,6 @@ const LeaveRequestSchema = new mongoose.Schema({
   },
   reason: {
     type: String,
-    required: true, // Lý do nghỉ
   },
   status: {
     type: String,
