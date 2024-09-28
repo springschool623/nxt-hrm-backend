@@ -17,9 +17,8 @@ const UserSchema = new mongoose.Schema(
       required: true,
     },
     userRoleType: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'UserRole',
-      default: 'Employee',
     },
   },
   { timestamps: true }

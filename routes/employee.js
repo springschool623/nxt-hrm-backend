@@ -80,7 +80,7 @@ router.post('/add', async (req, res) => {
       employeeId: newEmployeeId,
       email,
       password: hashedPassword,
-      userRoleType: employeeRole._id, // Sử dụng ObjectId đã lấy
+      userRoleType: 'Employee', // Sử dụng ObjectId đã lấy
     })
 
     // Lưu tài khoản người dùng vào cơ sở dữ liệu
@@ -100,9 +100,20 @@ router.post('/add', async (req, res) => {
 })
 
 // API để lấy danh sách tất cả nhân viên
-router.get('/list', async (req, res) => {
+router.get('/all-employee-list', async (req, res) => {
   try {
     const employees = await Employee.find()
+    res.status(200).json(employees)
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to retrieve employees', error })
+  }
+})
+
+// API để lấy danh sách tất cả nhân viên (không lấy những nhân viên có status là 'inactive')
+router.get('/current-employee-list', async (req, res) => {
+  try {
+    // Tìm tất cả nhân viên có status khác 'inactive'
+    const employees = await Employee.find({ status: { $ne: 'inactive' } })
     res.status(200).json(employees)
   } catch (error) {
     res.status(500).json({ message: 'Failed to retrieve employees', error })
@@ -152,6 +163,41 @@ router.put('/update/:employeeId', async (req, res) => {
   }
 })
 
+// API để thay đổi trạng thái của nhân viên (active/inactive) dựa trên Employee ID
+router.put('/change-status/:employeeId', async (req, res) => {
+  try {
+    const { employeeId } = req.params
+    const { status } = req.body // Lấy trạng thái từ request body
+
+    // Kiểm tra xem trạng thái có hợp lệ không (chỉ cho phép 'active' hoặc 'inactive')
+    if (!['active', 'inactive'].includes(status)) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid status. Must be active or inactive.' })
+    }
+
+    // Tìm nhân viên theo Employee ID và cập nhật trạng thái
+    const updatedEmployee = await Employee.findOneAndUpdate(
+      { employeeId },
+      { status },
+      { new: true } // Trả về dữ liệu mới sau khi cập nhật
+    )
+
+    if (!updatedEmployee) {
+      return res.status(404).json({ message: 'Employee not found' })
+    }
+
+    res.status(200).json({
+      message: `Employee ${
+        status === 'active' ? 'activated' : 'deactivated'
+      } successfully`,
+      updatedEmployee,
+    })
+  } catch (error) {
+    res.status(500).json({ message: `Failed to update employee status`, error })
+  }
+})
+
 // API để xóa nhân viên dựa trên Employee ID
 router.delete('/delete/:employeeId', async (req, res) => {
   try {
@@ -164,11 +210,26 @@ router.delete('/delete/:employeeId', async (req, res) => {
       return res.status(404).json({ message: 'Employee not found' })
     }
 
-    res
-      .status(200)
-      .json({ message: 'Employee deleted successfully', deletedEmployee })
+    // Tìm và xóa tài khoản người dùng dựa trên Employee ID
+    const deletedUser = await User.findOneAndDelete({ employeeId })
+
+    if (!deletedUser) {
+      return res.status(200).json({
+        message:
+          'Employee deleted, but no user account was found for this employee',
+        deletedEmployee,
+      })
+    }
+
+    res.status(200).json({
+      message: 'Employee and associated user account deleted successfully',
+      deletedEmployee,
+      deletedUser,
+    })
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete employee', error })
+    res
+      .status(500)
+      .json({ message: 'Failed to delete employee and user', error })
   }
 })
 

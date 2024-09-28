@@ -1,18 +1,47 @@
 const express = require('express')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const User = require('../models/User')
 const router = express.Router()
+const User = require('../models/User') // Đường dẫn tới model User
+const Employee = require('../models/Employee') // Đường dẫn tới model Employee
 
-// API để lấy danh sách tất cả người dùng
+// API để lấy danh sách tất cả người dùng kèm thông tin nhân viên
 router.get('/list', async (req, res) => {
   try {
-    const users = await User.find() // Tìm tất cả người dùng trong bảng User
-    res.status(200).json(users)
+    // Tìm tất cả người dùng
+    const users = await User.find()
+
+    // Lặp qua từng người dùng để tìm thông tin Employee tương ứng
+    const usersWithEmployeeInfo = await Promise.all(
+      users.map(async (user) => {
+        const employee = await Employee.findOne({ employeeId: user.employeeId })
+        if (employee) {
+          return {
+            ...user.toObject(), // Chuyển đổi User sang Object
+            employeeInfo: {
+              avatar: employee.avatar,
+              name: employee.name,
+              email: employee.email,
+              role: employee.role,
+              createdAt: employee.createdAt,
+            },
+          }
+        } else {
+          return {
+            ...user.toObject(),
+            employeeInfo: null, // Nếu không tìm thấy Employee thì đặt là null
+          }
+        }
+      })
+    )
+
+    res.status(200).json(usersWithEmployeeInfo) // Trả về danh sách người dùng kèm thông tin nhân viên
   } catch (error) {
     res.status(500).json({ message: 'Failed to retrieve users', error })
   }
 })
+
+module.exports = router
 
 // API đăng nhập
 router.post('/login', async (req, res) => {
@@ -41,7 +70,7 @@ router.post('/login', async (req, res) => {
     )
 
     // Trả về token cho client
-    return res.status(200).json({ token })
+    return res.status(200).json({ token, userRoleType: user.userRoleType })
   } catch (error) {
     return res.status(500).json({ message: 'Server error', error })
   }

@@ -8,6 +8,7 @@ const employeeRoutes = require('./routes/employee')
 const userRoleRoutes = require('./routes/user_role')
 const userRoutes = require('./routes/user')
 const initializeRoles = require('./initialize/initializeUserRoles') // Import script khởi tạo roles
+const createSuperAdmin = require('./initialize/initializeSuperAdmin') // Import script khởi tạo roles
 
 const app = express()
 
@@ -37,6 +38,7 @@ mongoose
 
     // Khởi tạo các roles sau khi kết nối database thành công
     initializeRoles() // Gọi hàm khởi tạo roles
+    createSuperAdmin()
   })
   .catch((error) => {
     console.log('Failed to connect to MongoDB', error)
