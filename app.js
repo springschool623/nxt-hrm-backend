@@ -7,9 +7,15 @@ const bodyParser = require('body-parser')
 const employeeRoutes = require('./routes/employee')
 const userRoleRoutes = require('./routes/user_role')
 const userRoutes = require('./routes/user')
-const leaveRequestRoutes = require('./routes/leave-request')
+const leaveRequestRoutes = require('./routes/leave_request')
+const departmentRoutes = require('./routes/department')
+const employeeRoleRoutes = require('./routes/employee_role')
+const leaveTypeRoutes = require('./routes/leave_type')
 const initializeRoles = require('./initialize/initializeUserRoles') // Import script khởi tạo roles
 const createSuperAdmin = require('./initialize/initializeSuperAdmin') // Import script khởi tạo roles
+const initializeDepartments = require('./initialize/initializeDepartments') // Import script khởi tạo roles
+const initializeEmployeeRoles = require('./initialize/initializeEmployeeRoles') // Import script khởi tạo roles
+const initializeLeaveTypes = require('./initialize/initializeLeaveTypes') // Import script khởi tạo roles
 
 const app = express()
 
@@ -28,6 +34,9 @@ app.use('/api/employees', employeeRoutes)
 app.use('/api/user-roles', userRoleRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/leave-requests', leaveRequestRoutes)
+app.use('/api/departments', departmentRoutes)
+app.use('/api/employee-roles', employeeRoleRoutes)
+app.use('/api/leave-types', leaveTypeRoutes)
 
 // Kết nối tới MongoDB
 mongoose
@@ -41,6 +50,9 @@ mongoose
     // Khởi tạo các roles sau khi kết nối database thành công
     initializeRoles() // Gọi hàm khởi tạo roles
     createSuperAdmin()
+    initializeDepartments()
+    initializeEmployeeRoles()
+    initializeLeaveTypes()
   })
   .catch((error) => {
     console.log('Failed to connect to MongoDB', error)

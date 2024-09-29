@@ -19,6 +19,7 @@ router.get('/all-request-list', async (req, res) => {
       leaveRequests.map(async (leaveRequest) => {
         const employee = await Employee.findOne({
           employeeId: leaveRequest.employeeId,
+          status: { $ne: 'inactive' },
         })
         if (employee) {
           return {
@@ -50,7 +51,31 @@ router.get('/pending-request-list', async (req, res) => {
     const leaveRequests = await LeaveRequest.find({
       status: 'pending',
     })
-    res.status(200).json(leaveRequests)
+
+    // Lặp qua từng người dùng để tìm thông tin Employee tương ứng
+    const leaveRequestsWithEmployeeInfo = await Promise.all(
+      leaveRequests.map(async (leaveRequest) => {
+        const employee = await Employee.findOne({
+          employeeId: leaveRequest.employeeId,
+          status: { $ne: 'inactive' },
+        })
+        if (employee) {
+          return {
+            ...leaveRequest.toObject(), // Chuyển đổi User sang Object
+            employeeInfo: {
+              avatar: employee.avatar,
+              name: employee.name,
+            },
+          }
+        } else {
+          return {
+            ...leaveRequest.toObject(),
+            employeeInfo: null, // Nếu không tìm thấy Employee thì đặt là null
+          }
+        }
+      })
+    )
+    res.status(200).json(leaveRequestsWithEmployeeInfo)
   } catch (error) {
     res
       .status(500)
@@ -94,7 +119,7 @@ router.post('/add', async (req, res) => {
 
   // Kiểm tra xem tất cả các thông tin cần thiết đã được cung cấp
   if (!employeeId || !leaveType || !startDate || !endDate || !reason) {
-    return res.status(400).json({ message: 'Thiếu thông tin cần thiết.' })
+    return res.status(400).json({ message: 'Missing information!' })
   }
 
   // Tạo một yêu cầu nghỉ mới
@@ -164,6 +189,16 @@ router.put('/rejected/:requestId', async (req, res) => {
     return res.status(200).json(updatedLeaveRequest) // Trả về đơn xin nghỉ đã được cập nhật
   } catch (error) {
     return res.status(500).json({ message: 'Có lỗi xảy ra.', error })
+  }
+})
+
+// API để xóa toàn bộ người dùng
+router.delete('/deleteAll', async (req, res) => {
+  try {
+    await LeaveRequest.deleteMany() // Xóa toàn bộ người dùng trong bảng User
+    res.status(200).json({ message: 'All leave requests have been deleted' })
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete leave requests', error })
   }
 })
 

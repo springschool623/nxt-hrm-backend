@@ -6,6 +6,10 @@ const UserRoleSchema = new mongoose.Schema({
     enum: ['Super Admin', 'Admin', 'HR', 'Employee'],
     required: true,
   },
+  roleLevel: {
+    type: Number,
+    required: true,
+  },
 })
 
 module.exports = mongoose.model('UserRole', UserRoleSchema)

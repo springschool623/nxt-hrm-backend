@@ -20,7 +20,7 @@ function generateRandomPassword(length = 8) {
 // API để thêm nhân viên mới
 router.post('/add', async (req, res) => {
   try {
-    const { name, email, phone, joinDate, role, avatar } = req.body
+    const { name, email, phone, joinDate, role, department, avatar } = req.body
 
     // Kiểm tra xem email đã tồn tại trong bảng User hay chưa
     const existingUser = await User.findOne({ email })
@@ -51,6 +51,7 @@ router.post('/add', async (req, res) => {
       phone,
       joinDate,
       role,
+      department,
       avatar,
     })
 
@@ -117,6 +118,31 @@ router.get('/current-employee-list', async (req, res) => {
     res.status(200).json(employees)
   } catch (error) {
     res.status(500).json({ message: 'Failed to retrieve employees', error })
+  }
+})
+
+// API để lấy danh sách nhân viên theo phòng ban
+router.get('/employees-by-department/:department', async (req, res) => {
+  try {
+    const { department } = req.params
+
+    // Tìm tất cả nhân viên thuộc phòng ban được chỉ định
+    const employees = await Employee.find({
+      department,
+      status: { $ne: 'inactive' },
+    })
+
+    if (employees.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'No employees found in this department' })
+    }
+
+    res.status(200).json(employees)
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: 'Failed to retrieve employees by department', error })
   }
 })
 
@@ -198,6 +224,28 @@ router.put('/change-status/:employeeId', async (req, res) => {
   }
 })
 
+router.put('/set-salary', async (req, res) => {
+  const { employeeId, salary } = req.body
+
+  try {
+    const employee = await Employee.findOne({ employeeId })
+
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' })
+    }
+
+    // Cập nhật trạng thái thành "approved"
+    employee.salary = salary
+
+    // Lưu thay đổi vào cơ sở dữ liệu
+    await employee.save()
+
+    res.status(200).json({ message: 'Salary set successfully' })
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to set salary', error })
+  }
+})
+
 // API để xóa nhân viên dựa trên Employee ID
 router.delete('/delete/:employeeId', async (req, res) => {
   try {
@@ -232,5 +280,17 @@ router.delete('/delete/:employeeId', async (req, res) => {
       .json({ message: 'Failed to delete employee and user', error })
   }
 })
+
+// API để xóa toàn bộ người dùng
+router.delete('/deleteAll', async (req, res) => {
+  try {
+    await Employee.deleteMany() // Xóa toàn bộ người dùng trong bảng User
+    res.status(200).json({ message: 'All employees have been deleted' })
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete employees', error })
+  }
+})
+
+module.exports = router
 
 module.exports = router

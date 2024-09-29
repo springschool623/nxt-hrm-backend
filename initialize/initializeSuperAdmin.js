@@ -1,5 +1,6 @@
 const User = require('../models/User') // Đường dẫn tới file model User
 const UserRole = require('../models/UserRole') // Đường dẫn tới file model UserRole
+const Employee = require('../models/Employee') // Đường dẫn tới file model UserRole
 const bcrypt = require('bcrypt')
 
 // Function to create a Super Admin account
@@ -32,10 +33,24 @@ const createSuperAdmin = async () => {
         userRoleType: 'Super Admin', // Gán vai trò Super Admin
       })
 
+      // Tạo tài khoản Super Admin
+      const superAdminInfo = new Employee({
+        name: 'Nguyen Xuan Truong',
+        email: superAdminEmail,
+        employeeId: 'SUPERADMIN0001',
+        phone: '02881129211',
+        joinDate: Date.now(),
+        role: 'CEO',
+        department: '',
+        avatar: '',
+        status: 'active',
+      })
+
       // Lưu tài khoản Super Admin vào cơ sở dữ liệu
       await superAdmin.save()
+      await superAdminInfo.save()
 
-      console.log(`Super Admin created with email: ${superAdminEmail}`)
+      console.log(`Super Admin created with email: ${superAdminInfo}`)
       console.log(`Password: ${plainPassword}`) // Hiển thị mật khẩu (nên lưu trữ hoặc gửi đi một cách an toàn)
     } else {
       console.log('Super Admin account already exists.')

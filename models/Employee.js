@@ -28,12 +28,12 @@ const EmployeeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    department: {
+      type: String,
+      ref: 'Department',
+    },
     avatar: {
       type: String, // URL của ảnh đại diện
-    },
-    manager: {
-      type: String,
-      required: false, // Tham chiếu tới manager nếu có
     },
     status: {
       type: String,
@@ -42,7 +42,11 @@ const EmployeeSchema = new mongoose.Schema(
     },
     leaveBalance: {
       type: Number,
-      default: 0, // Số ngày phép còn lại
+      default: 2, // Số ngày phép còn lại
+    },
+    salary: {
+      type: Number,
+      required: false,
     },
   },
   { timestamps: true }

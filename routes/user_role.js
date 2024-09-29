@@ -12,4 +12,14 @@ router.get('/list', async (req, res) => {
   }
 })
 
+// API để xóa toàn bộ người dùng
+router.delete('/deleteAll', async (req, res) => {
+  try {
+    await UserRole.deleteMany() // Xóa toàn bộ người dùng trong bảng User
+    res.status(200).json({ message: 'All users have been deleted' })
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete users', error })
+  }
+})
+
 module.exports = router

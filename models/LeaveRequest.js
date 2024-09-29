@@ -13,6 +13,7 @@ const LeaveRequestSchema = new mongoose.Schema({
   leaveType: {
     type: String,
     required: true, // Tham chiếu đến nhân viên gửi yêu cầu nghỉ
+    ref: 'LeaveType',
   },
   startDate: {
     type: Date,

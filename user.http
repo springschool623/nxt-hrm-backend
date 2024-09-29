@@ -1,2 +1,2 @@
-DELETE http://localhost:5000/api/users/deleteAll
+DELETE http://localhost:5000/api/employees/deleteAll
 
